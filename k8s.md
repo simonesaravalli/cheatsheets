@@ -1,48 +1,55 @@
-## GET CLUSTER DETAILS
+## Get K8S cluster detauls
 
-```kubectl cluster-info
+```
+kubectl cluster-info
 
 Kubernetes control plane is running at https://kubernetes.docker.internal:6443
 CoreDNS is running at https://kubernetes.docker.internal:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.```
 
-## GET NODES DETAILS
+## Get K8S nodes details
 
-```kubectl get nodes
+```
+kubectl get nodes
 
 NAME             STATUS   ROLES                  AGE     VERSION
-docker-desktop   Ready    control-plane,master   3h13m   v1.21.1```
+docker-desktop   Ready    control-plane,master   3h13m   v1.21.1
+```
 
+## Get K8S namespaces details
 
-## GET NAMESPACES DETAILS
-
-```kubectl get namespaces
+```
+kubectl get namespaces
 
 NAME                   STATUS   AGE
 default                Active   3h13m
 kube-node-lease        Active   3h13m
 kube-public            Active   3h13m
 kube-system            Active   3h13m
-kubernetes-dashboard   Active   3h6m```
+kubernetes-dashboard   Active   3h6m
+```
 
-## CLUSTER IS EMPTY, SO CREATE A NEW DEPLOYMENT BASED ON A STANDARD NGINX IMAGE
+## Create a new K8S deployment base on a standard nginx image
 
-# DEPLOYMENT IS AN ABSTRACTION LAYER THAT MANAGES A REPLICASET
-# REPLICASET IS AN ABSTRACTION LAYER THAT MANAGES A POD
-# POD IS AN ABSTACTION LAYER THAT MANAGES A CONTAINER (EX DOCKER)
-#
-# IN KUBERNETES YOU HAVE TO WORK ON DEPLOYMENTS AND DON'T TAKE CARE OF OTHER LAYERS. K8S WILL DO THIS FOR YOU
+*IMPORTANT*
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl create deployment nginx-depl --image=nginx
+* deployment is an abstraction layer that manages a replicaset
+* replicaset is an abstraction layer that manages a pod
+* pod is an abstraction layer that manages a container (for example a Docker container)
+* In Kubernetes, just work with deployments, don't take care of other layers, K8S will do that for you
 
+```
+kubectl create deployment nginx-depl --image=nginx
+```
 
-# GET DEPLOYMENTS DETAILS
+## Get deployment details
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get deployment
+```
+kubectl get deployment
 NAME         READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-depl   1/1     1            1           98m
-
+```
 
 # GET REPLICASET DETAILS
 
