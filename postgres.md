@@ -24,7 +24,7 @@ EOF
 sudo yum makecache
 ```
 
-4. install postgres
+4. install Postgres 12 client
 
 ```
 yum install postgresql12.x86_64
@@ -32,5 +32,5 @@ yum install postgresql12.x86_64
 
 ## Dump and restore a Posgres database in AWS RDS
 
-Original URL: https://medium.com/@arunshaji95/postgresql-pg-dump-and-pg-restore-ad8343f921bb
-Permanent copy: https://archive.ph/YY2R8
+* Original URL: https://medium.com/@arunshaji95/postgresql-pg-dump-and-pg-restore-ad8343f921bb
+* Permanent copy: https://archive.ph/YY2R8
