@@ -305,17 +305,17 @@ kubectl delete deployment nginx-depl
 deployment.apps "nginx-depl" deleted
 ```
 
-#
-# NOTE: ALL CRUD OPERATIONS ARE PERFORMED BY THE USER ON DEPLOYMENTS. K8S TAKES CARE OF CORRESPONDING OPERATIONS ON OTHER LAYERS AUTOMATICALLY
-#
+**IMPORTANT**
 
+All CRUD operations are performed by the user on deployments. K8S then takes care of corresponding operations on other layers automatically.
 
-# INSTEAD OF MANAGING DEPLOYMENT PARAMETERS THROUGH COMMAND LINE, YOU CAN CREATE A TEXT FILE IN YAML FORMAT AND PUSH
-# ALL THE NECESSARY CONFIGURATION IN IT, THEN RUN KUBECTL APPLY COMMAND BY SPECIFYING WITH -F THE FILE NAME WITH THE
-# DEPLOYMENT'S CONFIGURATION TO INSTANTIATE IT
+## yml deployments
 
-# EXAMPLE DEPLOYMENT FILE FOR NGINX
+Instead of managing deployments parameters from the cli, you can create a yml file with all the necessary configuration, then run kubectl apply specifyig the name of the deployment with the -f flag.
 
+This is an example of a deployment yml file for nginx:
+
+```
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -335,59 +335,75 @@ spec:							# deployment specification
         image: nginx:1.20
         ports:
         - containerPort: 80
+```
 
+Now apply this deployment and see all the resources created by K8S:
 
-# APPLY THE NEW DEPLOYMENT AND SEE THAT DEPLOYMENT, REPLICASET AND POD ARE CREATED, WITH 1 RUNNING NGINX CONTAINER
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl apply -f nginx-deployment.yaml
+```
+kubectl apply -f nginx-deployment.yaml
 deployment.apps/nginx-deployment created
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get deployment
+```
+kubectl get deployment
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-deployment   1/1     1            1           7s
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get replicaset
+```
+kubectl get replicaset
 NAME                          DESIRED   CURRENT   READY   AGE
 nginx-deployment-6897679c4b   1         1         1       15s
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
+```
+kubectl get pod
 NAME                                READY   STATUS    RESTARTS   AGE
 nginx-deployment-6897679c4b-qkb76   1/1     Running   0          22s
+```
 
+From the configuration file it's possible to add, change, or delete any parameter. Saving the file and applying again with kubectl will perform the requested changes. For example, if we set replicatet from 1 to 2 and we apply the deployment again, the number of running pods will go from 1 to 2:
 
-# FROM THE CONFIGURATION FILE IT'S POSSIBLE TO ADD, CHANGE OR DELETE ANY PARAMETER, THEN SAVING THE FILE AND APPLYING AGAIN WITH KUBECTL WILL PERFORM THE REQUESTED CHANGES
-# FOR EXAMPLE, IF WE SET REPLICASET FROM 1 TO 2 AND WE APPLY AGAIN, THE NUMBER OF RUNNING PODS WILL BECOME 2
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl apply -f nginx-deployment.yaml
+```
+kubectl apply -f nginx-deployment.yaml
 deployment.apps/nginx-deployment configured
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get deployment
+```
+kubectl get deployment
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-deployment   2/2     2            2           7m24s
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
+```
+kubectl get pod
 NAME                                READY   STATUS    RESTARTS   AGE
 nginx-deployment-6897679c4b-42lph   1/1     Running   0          14s
 nginx-deployment-6897679c4b-qkb76   1/1     Running   0          7m31s
+```
 
+Now destroy the deployment by referencing its configuration file
 
-# DESTROY THE DEPLOYMENT REFERENCING IT'S CONFIGURATION FILE
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl delete -f nginx-deployment.yaml
+```
+kubectl delete -f nginx-deployment.yaml
 deployment.apps "nginx-deployment" deleted
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get deployment
+```
+kubectl get deployment
 No resources found in default namespace.
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
+```
+kubectl get pod
 No resources found in default namespace.
+```
 
-
-# REUSE NGINX DEPLOYMENT BY CHANGING NUMBER OF PODS TO 2 INSTANCES LISTENING ON PORT 8080
-# THEN ADD A SERVICE LINKED TO NGINX DEPLOYMENT TO FORWARD INCOMING TRAFFIC ON PORT 80 TO PORT 8080 OF THE 2 NGINX PODS
+Now we reuse the yml of the nginx deployment and we change the number of pods to 2 instances, listening on port 8080. Then we add a service linked to the nginx deployment to forward incoming traffic on port 80 to port 8080 of the 2 pods:
 
 nginx-deployment.yaml:
 
+```
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -409,10 +425,11 @@ spec:
         image: nginx:1.20
         ports:
         - containerPort: 8080
-
+```
 
 nginx-service.yaml:
 
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -424,31 +441,42 @@ spec:
   - port: 80
     targetPort: 8080
     protocol: TCP
+```
 
-# THE SERVICE IS CONNECTED TO THE DEPLOYMENT THROUGH THE SELECTOR app:nginx
+The service is connected to the deployment through the selector app:nginx
 
-# APPLY THE DEPLOYMENT AND THE SERVICE
+Now we can apply the deployment and the service:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl apply -f nginx-deployment.yaml
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl apply -f nginx-service.yaml
+```
+kubectl apply -f nginx-deployment.yaml
+kubectl apply -f nginx-service.yaml
+```
 
-# 2 PODS ARE RUNNING WITH INTERNAL IP
+We can see that 2 pods are running with internal IP addresses:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pods -o wide
+```
+kubectl get pods -o wide
 NAME                                READY   STATUS    RESTARTS   AGE   IP          NODE             NOMINATED NODE   READINESS GATES
 nginx-deployment-85d6c5d8d6-hvpjf   1/1     Running   0          44m   10.1.0.17   docker-desktop   <none>           <none>
 nginx-deployment-85d6c5d8d6-nxfjt   1/1     Running   0          44m   10.1.0.16   docker-desktop   <none>           <none>
+```
 
-# THE NEW NGINX SERVICE HAS BEEN CREATED
+The new nginx service has been created also:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get service
+```
+kubectl get service
 NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
 kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP   6h5m
 nginx-service   ClusterIP   10.99.21.187   <none>        80/TCP    36m          <--------- new service
+```
 
-# DESCRIBE THE NEW SERVICE. IT'S LISTENING ON PORT 80 AND REFERENCING THE 2 PODS LISTENING ON PORT 8080
+We can describe it and see that it's listening on port 80 and it references the 2 nginx pods listening each on local port 8080:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl describe service nginx-service
+```
+kubectl describe service nginx-service
+```
+
+```
 Name:              nginx-service
 Namespace:         default
 Labels:            <none>
@@ -464,3 +492,4 @@ TargetPort:        8080/TCP
 Endpoints:         10.1.0.16:8080,10.1.0.17:8080
 Session Affinity:  None
 Events:            <none>
+```
