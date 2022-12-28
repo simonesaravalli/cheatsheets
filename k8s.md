@@ -1,8 +1,12 @@
-## Get K8S cluster detauls
+## Get K8S cluster details
 
 ```
 kubectl cluster-info
+```
 
+The output will be:
+
+```
 Kubernetes control plane is running at https://kubernetes.docker.internal:6443
 CoreDNS is running at https://kubernetes.docker.internal:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
@@ -13,7 +17,11 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 ```
 kubectl get nodes
+```
 
+The output will be:
+
+```
 NAME             STATUS   ROLES                  AGE     VERSION
 docker-desktop   Ready    control-plane,master   3h13m   v1.21.1
 ```
@@ -22,7 +30,11 @@ docker-desktop   Ready    control-plane,master   3h13m   v1.21.1
 
 ```
 kubectl get namespaces
+```
 
+The output on a fresh cluster will be:
+
+```
 NAME                   STATUS   AGE
 default                Active   3h13m
 kube-node-lease        Active   3h13m
@@ -33,7 +45,7 @@ kubernetes-dashboard   Active   3h6m
 
 ## Create a new K8S deployment base on a standard nginx image
 
-*IMPORTANT*
+**IMPORTANT**
 
 * deployment is an abstraction layer that manages a replicaset
 * replicaset is an abstraction layer that manages a pod
@@ -48,78 +60,128 @@ kubectl create deployment nginx-depl --image=nginx
 
 ```
 kubectl get deployment
+```
+
+The output will be:
+
+```
 NAME         READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-depl   1/1     1            1           98m
 ```
 
-# GET REPLICASET DETAILS
+## Get replicaset details
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get replicaset
+```
+kubectl get replicaset
+```
+
+The output will be:
+
+```
 NAME                    DESIRED   CURRENT   READY   AGE
 nginx-depl-5c8bf76b5b   1         1         1       98m
+```
 
+## Get pod detauls
 
-# GET POD DETAILS
+```
+kubectl get pod
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
+The output will be:
+
+```
 NAME                          READY   STATUS    RESTARTS   AGE
 nginx-depl-5c8bf76b5b-5gg2q   1/1     Running   0          99m
+```
 
-# NAME OF POD IS nginx-depl-5c8bf76b5b-5gg2q WHERE nginx-depl IS THE NAME OF THE DEPLOYMENT, 5c8bf76b5b IS THE ID OF THE REPLICASET AND 5gg2q IS THE ID OF THE POD
+The name of the pod is *nginx-depl-5c8bf76b5b-5gg2q* where
 
+* nginx-depl: is the name of the deployment
+* 5c8bf76b5b: is the ID of the replicaset
+* 5gg2q: is the ID of the pod
 
-# MAKE A CHANGE TO THE DEPLOYMENT BY FORCING NGINX IMAGE VERSION TO 1.20. CHANGE LINE "- image: nginx" TO "-image: nginx:1.20" THAN SAVE AND EXIT FROM THE EDITOR
+## Make a change to the deployment
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl edit deployment nginx-depl
+Now we make a change to the deployment of nginx forcing K8S to use nginx image version 1.20. Run kubectl edit and change line "- image: nginx" to "-image: nginx:1.20", then save and exit the editor>
+
+```
+kubectl edit deployment nginx-depl
+```
+
+The output will be:
+
+```
 deployment.apps/nginx-depl edited
+```
 
+Get again the details of the deployment, nothing changed:
 
-# GET AGAIN DEPLOYMENT DETAILS. NOTHING HAS CHANGED
+```
+kubectl get deployments
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get deployments
 NAME         READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-depl   1/1     1            1           103m
+```
 
+Get again replicaset detauls, the old replicaset is not in use anymore and a new one has been created with 1 pod running
 
-# GET AGAIN REPLICASET DETAILS. THE OLD REPLICASET IS NOT USED ANYMORE AND A NEW REPLICASET HAS BEEN CREATED INSTEAD WITH 1 RUNNING POD
+```
+kubectl get replicaset
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get replicaset
 NAME                    DESIRED   CURRENT   READY   AGE
 nginx-depl-58f65d4b6f   1         1         1       17s
 nginx-depl-5c8bf76b5b   0         0         0       104m
+```
 
+Get again pod detauls, now there's a new running pod attached to the new replicaset (58f...)
 
-# GET AGAIN POD DETAILS. NOW THERE'S A NEW RUNNING POD ON THE NEW REPLICASET (58F...)
+```
+kubectl get pod
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
 NAME                          READY   STATUS    RESTARTS   AGE
 nginx-depl-58f65d4b6f-wr8qp   1/1     Running   0          29s
+```
 
+## Create a deployment for MongoDB
 
-# CREATE A NEW DEPLOYMENT WITH MONGO IMAGE
+```
+kubectl create deployment mongo-depl --image=mongo-depl
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl create deployment mongo-depl --image=mongo-depl
-deployment.apps/mongo-depl created
+## Get pod details
 
+```
+kubectl get pods
 
-# GET PODS DETAILS. NEW MONGO POD IS STARTING
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pods
 NAME                          READY   STATUS              RESTARTS   AGE
 mongo-depl-5fd6b7d4b4-k25zw   0/1     ContainerCreating   0          6s
 nginx-depl-58f65d4b6f-wr8qp   1/1     Running             0          24m
+```
 
+## Get logs of the MongoDB pod
 
-# GET LOGS OF THE MONGO POD TO SEE WHAT'S HAPPENING. NOTE THAT AN ERROR IS SHOWN STATING THAT MONGO CONTAINER IS NOT RUNNING YET
+Getting logs of the MongoDB pod too early will end in an error because the pod is not running yet
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl logs mongo-depl-5fd6b7d4b4-k25zw
+```
+kubectl logs mongo-depl-5fd6b7d4b4-k25zw
+```
+
+It will output:
+
+```
 Error from server (BadRequest): container "mongo" in pod "mongo-depl-5fd6b7d4b4-k25zw" is waiting to start: ContainerCreating
+```
 
+While we wait a bit, let's take a look at the pod status with more details:
 
-# WHILE WE WAIT A LITTLE BIT, LET'S TAKE A LOOK AT THE POD STATUS WITH MORE DETAILS
+```
+kubectl describe pod mongo-depl-5fd6b7d4b4-k25zw
+```
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl describe pod mongo-depl-5fd6b7d4b4-k25zw
+It will output:
 
+```
 Name:         mongo-depl-5fd6b7d4b4-k25zw
 Namespace:    default
 Priority:     0
@@ -172,12 +234,17 @@ Events:
   Normal  Pulled     44s   kubelet            Successfully pulled image "mongo" in 1m6.3158403s
   Normal  Created    43s   kubelet            Created container mongo
   Normal  Started    43s   kubelet            Started container mongo
-  
+```
 
-# OK, NOW THE CONTAINER IS STARTED, SO IT SHOULD BE POSSIBLE TO SEE THE POD'S LOGS
+Ok now the pod is started, so we can look at its logs:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl logs mongo-depl-5fd6b7d4b4-k25zw
+```
+kubectl logs mongo-depl-5fd6b7d4b4-k25zw
+```
 
+It will ooutput:
+
+```
 {"t":{"$date":"2021-07-30T12:36:20.191+00:00"},"s":"I",  "c":"NETWORK",  "id":4915701, "ctx":"-","msg":"Initialized wire specification","attr":{"spec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":13},"incomingInternalClient":{"minWireVersion":0,"maxWireVersion":13},"outgoing":{"minWireVersion":0,"maxWireVersion":13},"isInternalClient":true}}}
 {"t":{"$date":"2021-07-30T12:36:20.192+00:00"},"s":"I",  "c":"CONTROL",  "id":23285,   "ctx":"main","msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
 {"t":{"$date":"2021-07-30T12:36:20.193+00:00"},"s":"W",  "c":"ASIO",     "id":22601,   "ctx":"main","msg":"No TransportLayer configured during NetworkInterface startup"}
@@ -188,64 +255,55 @@ simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl logs mongo-depl-5fd6b7d4b4-k25zw
 {"t":{"$date":"2021-07-30T12:36:20.631+00:00"},"s":"I",  "c":"NETWORK",  "id":23015,   "ctx":"listener","msg":"Listening on","attr":{"address":"0.0.0.0"}}
 {"t":{"$date":"2021-07-30T12:36:20.631+00:00"},"s":"I",  "c":"NETWORK",  "id":23016,   "ctx":"listener","msg":"Waiting for connections","attr":{"port":27017,"ssl":"off"}}
 ...
+```
 
+## Login into a running pod
 
-# NEED FURTHER DEBUGGING? LOGIN INTO THE MONGODB POD
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl exec -it mongo-depl-5fd6b7d4b4-k25zw -- /bin/bash
+```
+kubectl exec -it mongo-depl-5fd6b7d4b4-k25zw -- /bin/bash
 
 root@mongo-depl-5fd6b7d4b4-k25zw:/# ls
 bin  boot  data  dev  docker-entrypoint-initdb.d  etc  home  js-yaml.js  lib  lib32  lib64  libx32  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
-root@mongo-depl-5fd6b7d4b4-k25zw:/# exit
-simone@ITBLQ1LPTL0052:~/kubernetes$
+```
 
+## Delete a deployment
 
-# DELETE A DEPLOYMENT
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl delete deployment mongo-depl
+```
+kubectl delete deployment mongo-depl
 deployment.apps "mongo-depl" deleted
+```
 
-# DEPLOYMENT mongo-depl HAS GONE
+Deployment mongo-depl has gone:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get deployment
+```
+kubectl get deployment
 NAME         READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-depl   1/1     1            1           143m
+```
 
-# MONGO REPLICASET HAS GONE, ONLY NGINX REPLICASETS ARE STILL HERE
+Mongo replicaset has gone:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get replicaset
+```
+kubectl get replicaset
 NAME                    DESIRED   CURRENT   READY   AGE
 nginx-depl-58f65d4b6f   1         1         1       40m
 nginx-depl-5c8bf76b5b   0         0         0       143m
+```
 
-# MONGO POD HAS GONE
+Mongo pod has gone:
 
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
+```
+kubectl get pod
 NAME                          READY   STATUS    RESTARTS   AGE
 nginx-depl-58f65d4b6f-wr8qp   1/1     Running   0          40m
+```
 
+Delete also nginx deployment
 
-# DELETE ALSO NGINX DEPLOYMENT
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl delete deployment nginx-depl
+```
+kubectl delete deployment nginx-depl
 deployment.apps "nginx-depl" deleted
-
-# NGINX POD IS TERMINATING
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
-NAME                          READY   STATUS        RESTARTS   AGE
-nginx-depl-58f65d4b6f-wr8qp   0/1     Terminating   0          40m
-
-# ALL REPLICASETS HAVE GONE
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get replicaset
-No resources found in default namespace.
-
-# ALL PODS ARE GONE
-
-simone@ITBLQ1LPTL0052:~/kubernetes$ kubectl get pod
-No resources found in default namespace.
-
+```
 
 #
 # NOTE: ALL CRUD OPERATIONS ARE PERFORMED BY THE USER ON DEPLOYMENTS. K8S TAKES CARE OF CORRESPONDING OPERATIONS ON OTHER LAYERS AUTOMATICALLY
