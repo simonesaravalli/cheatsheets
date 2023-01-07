@@ -202,7 +202,7 @@ At this point the new virtual machine should be completed, so it can be prepared
 
 ```
 cd /etc/ssh
-sudo rm -f ssh_hosts_*
+sudo rm -f ssh_host_*
 ``` 
 
 **IMPORTANT** These files must be regenerated once a new virtual machine is created from the template, otherwise SSH will not run. See below for more details on that.
