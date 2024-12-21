@@ -14,7 +14,7 @@ On Centos:
 yum install zsh
 ```
 
-2. Install oh-my-zsh via curl
+2. Install oh-my-zsh with curl
 
 https://ohmyz.sh/#install
 
